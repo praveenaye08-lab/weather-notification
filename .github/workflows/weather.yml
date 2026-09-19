@@ -1,0 +1,43 @@
+name: Daily Weather Email (8:00 AM IST)
+
+on:
+  schedule:
+    # Runs every day at 08:00 AM IST (Indian Standard Time, UTC+5:30)
+    # GitHub Actions schedules use UTC (8:00 AM IST = 2:30 AM UTC):
+    - cron: '30 2 * * *'
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions UI
+
+jobs:
+  send-weather-email:
+    runs-on: ubuntu-latest
+
+    env:
+      # Set timezone to IST (Asia/Kolkata)
+      TZ: 'Asia/Kolkata'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set System Timezone to IST (Asia/Kolkata)
+        run: |
+          sudo timedatectl set-timezone Asia/Kolkata
+          echo "Runner system time is:"
+          date
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Send Weather Email
+        run: python weather_email.py
